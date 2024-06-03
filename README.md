@@ -1,5 +1,5 @@
 # Kinect-V2-Virtual-Violin
-With motion capture technique of Kinect V2, the device can detect human joint. I made an interface with WPF using C# to interact with Kinect V2. Kinect V2 traces user's left hand joint so as to choose different notes of violin, and by waving right arm, Kinect V2 can detect the movement like playing the bow of violin. Users can also choose different instrument like string ensemble, cello and double bass. Right arm waving detection is made by Kinect Gesture Builder, using recorded videos as training set to train specific gestures. Music sound are from Rtmidi library.
+Utilizing the motion capture capabilities of the Kinect V2, the device detects human joints. I developed a WPF interface using C# to interact with the Kinect V2. By tracking the user's left hand joint, the Kinect V2 allows selection of different violin notes, while waving the right arm simulates bow movements. Users can also choose from various instruments like string ensemble, cello, and double bass. The detection of right arm waving is achieved through the Kinect Gesture Builder, which utilizes recorded videos as a training set to recognize specific gestures. Music sounds are produced using the Rtmidi library.
 
 ![alt text](https://i.ibb.co/NNr27Zc/image.jpg)
 
