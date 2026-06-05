@@ -25,6 +25,104 @@ Leave a button once (arms the session)
   → MIDI note plays; gesture ends or hand leaves → note stops
 ```
 
+## Technical Foundations
+
+This project sits at the intersection of **computer vision**, **human–computer interaction**, and **digital music synthesis**. The app does not implement low-level sensor drivers; instead it composes several mathematical pipelines provided by the Kinect SDK into a playable virtual instrument.
+
+### 1. Depth Sensing & Coordinate Projection
+
+Kinect v2 fuses an **IR time-of-flight depth camera** with a color camera. Each tracked body joint is reported in **camera space** — a right-handed 3D coordinate system where the sensor is the origin, \(Z\) points toward the user, and units are meters:
+
+\[
+\mathbf{p}_{\text{camera}} = (X,\ Y,\ Z)
+\]
+
+To draw the skeleton on screen, `KinectBodyView` projects each joint into **depth image space** (2D pixel coordinates) via the SDK's `CoordinateMapper`:
+
+\[
+(x_d,\ y_d) = \Pi\!\left(\mathbf{p}_{\text{camera}}\right)
+\]
+
+where \(\Pi\) encapsulates the Kinect's calibrated **pinhole camera model** (focal length, principal point, lens distortion). Inferred joints occasionally report \(Z < 0\); the renderer clamps \(Z \leftarrow \max(Z,\ 0.1\ \text{m})\) to avoid singular projections that would map to \((-\infty,\ -\infty)\).
+
+### 2. Skeletal Kinematics
+
+The SDK tracks up to six bodies, each modeled as a **kinematic tree** of 25 joints connected by rigid **bones**. The visualization treats the skeleton as a graph \(G = (V, E)\):
+
+- **Vertices** \(V\): joint positions in depth space
+- **Edges** \(E\): anatomical bone pairs (e.g. `ShoulderRight → ElbowRight → WristRight`)
+
+Each joint carries a **tracking state** \(\sigma \in \{\text{Tracked},\ \text{Inferred},\ \text{NotTracked}\}\). A bone is drawn as a solid segment only when both endpoints are Tracked; otherwise it is rendered as an inferred (dashed) connection — a simple confidence heuristic over the kinematic chain.
+
+### 3. Hand-Pointer Projection & Hit Testing
+
+Hover detection does not use raw depth pixels. The Kinect WPF input stack provides a **hand pointer** in normalized screen coordinates:
+
+\[
+\mathbf{u} = (u_x,\ u_y) \in [0, 1]^2
+\]
+
+`KinectV2CustomButtonController` maps this to pixel space and performs an **axis-aligned bounding box (AABB)** hit test against each button:
+
+\[
+\begin{aligned}
+\mathbf{p}_{\text{region}} &= (u_x \cdot W_{\text{region}},\ u_y \cdot H_{\text{region}}) \\
+\mathbf{p}_{\text{button}} &= T_{\text{region}\rightarrow\text{button}}(\mathbf{p}_{\text{region}}) \\
+\text{inside} &\Leftrightarrow 0 \le p_x < W_{\text{button}} \ \land\ 0 \le p_y < H_{\text{button}}
+\end{aligned}
+\]
+
+where \(T\) is the WPF affine coordinate transform (`TranslatePoint`). Enter/leave events fire on **state transitions** of the `inside` predicate, giving hysteresis-free hover semantics without mouse hardware.
+
+### 4. Gesture Recognition (Visual Gesture Builder)
+
+The `PlayString` bowing gesture is not hard-coded. It is a **discrete classifier** trained offline in Visual Gesture Builder and shipped as `Database/PlayString.gba`. At runtime, VGB evaluates the live skeleton against an ensemble of **AdaBoost decision stumps** trained on skeletal feature vectors (joint angles, relative displacements, and temporal derivatives across frames).
+
+Each frame yields a detection flag and a **confidence** \(c \in [0, 1]\):
+
+\[
+\text{PlayString}(t) = \mathbb{1}\left[\sum_k \alpha_k h_k(\mathbf{x}_t) \ge \theta\right], \quad c = \sigma(\cdot)
+\]
+
+where \(\mathbf{x}_t\) is the skeletal state at time \(t\), \(h_k\) are weak learners, and \(\alpha_k\) are learned weights. `GestureDetector` forwards \((\text{detected},\ c)\) to `ViolinSessionController`, which treats gesture onset/offset as a **temporal gate** for MIDI output.
+
+### 5. Music Theory & MIDI Pitch Mapping
+
+Note buttons map to **MIDI note numbers** under **12-tone equal temperament**, where each semitone corresponds to a frequency ratio of \(2^{1/12}\):
+
+\[
+f(n) = 440\ \text{Hz} \cdot 2^{(n - 69)/12}
+\]
+
+The four violin strings (G, D, A, E) are laid out as ascending semitone grids in `MusicCatalog`:
+
+| String | Open string (MIDI) | Frets G0–G3 / D0–D3 / … |
+|--------|-------------------|-------------------------|
+| G | 55 (G₃, ≈ 196 Hz) | +2 semitones per fret |
+| D | 62 (D₄, ≈ 293 Hz) | |
+| A | 69 (A₄, 440 Hz) | |
+| E | 76 (E₅, ≈ 659 Hz) | |
+
+Instrument presets apply a **semitone transposition** via pitch offset before `NoteOn` / `NoteOff`:
+
+\[
+n_{\text{out}} = n_{\text{base}} + \Delta_{\text{pitch}}
+\]
+
+For example, Cello uses \(\Delta = -20\) (just under two octaves down), emulating a lower-register timbre on the same physical gesture. `ProgramChange` selects the General MIDI instrument patch independently of pitch.
+
+### 6. Session State Machine
+
+Whether a note actually sounds is governed by a small **finite state machine** in `ViolinSessionController`, not by gesture detection alone. All of the following must hold:
+
+\[
+\text{play} \Leftrightarrow \underbrace{\text{armed}}_{\text{left a button once}} \ \land\ \underbrace{\text{hover}(\text{note})}_{\text{AABB hit}} \ \land\ \underbrace{\text{PlayString}}_{\text{VGB gate}}
+\]
+
+Leaving a button **arms** the session; hovering selects pitch; the bowing gesture acts as a **continuous controller** that opens the MIDI gate. Gesture end or hand leave sends `NoteOff`, completing the attack–release envelope at the synthesis layer.
+
+Together, these layers transform raw depth frames into musical output: **3D sensing → 2D projection → kinematic tracking → learned gesture classification → tempered pitch mapping → MIDI**.
+
 ## Requirements
 
 ### Hardware
