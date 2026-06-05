@@ -18,7 +18,11 @@ The project extends the [Kinect v2 WPF Custom Button](https://github.com/deharia
 ### Typical Interaction Flow
 
 ```
-Hover hand over a string button → Select instrument → Perform bowing gesture → MIDI note plays
+Leave a button once (arms the session)
+  → Hover over an instrument button to switch sound (Violin / Cello / …)
+  → Hover over a note button (G0–E3)
+  → Perform the PlayString bowing gesture
+  → MIDI note plays; gesture ends or hand leaves → note stops
 ```
 
 ## Requirements
@@ -29,7 +33,7 @@ Hover hand over a string button → Select instrument → Perform bowing gesture
 |------|-------|
 | **Kinect for Windows v2** | Sensor + power hub + USB 3.0 port |
 | **Windows PC** | 64-bit Windows 10/11 recommended |
-| **MIDI output device** | e.g. [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) or a DAW virtual port |
+| **MIDI output device** | Recommended: [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html). The app launches without one, but produces no sound |
 
 ### Software
 
@@ -49,8 +53,6 @@ Hover hand over a string button → Select instrument → Perform bowing gesture
 |---------|---------|---------|
 | [Microsoft.Kinect.VisualGestureBuilder](https://www.nuget.org/packages/Microsoft.Kinect.VisualGestureBuilder) | 2.0.1410.19000 | Custom gesture recognition |
 | [RtMidi.Core](https://www.nuget.org/packages/RtMidi.Core) | 1.0.50 | MIDI output |
-| [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json) | 12.0.3 | JSON serialization (referenced, lightly used) |
-| [Serilog](https://www.nuget.org/packages/Serilog) | 2.8.0 | Logging (referenced, lightly used) |
 
 ### Bundled References (`Kinect_Violin/References/`)
 
@@ -64,7 +66,7 @@ Hover hand over a string button → Select instrument → Perform bowing gesture
 | Software | Download |
 |----------|----------|
 | **Kinect for Windows SDK 2.0** | [Microsoft Download Center](https://www.microsoft.com/en-us/download/details.aspx?id=44561) |
-| **loopMIDI** (optional, for sound) | [tobias-erichsen.de/software/loopmidi.html](https://www.tobias-erichsen.de/software/loopmidi.html) |
+| **loopMIDI** (recommended for sound) | [tobias-erichsen.de/software/loopmidi.html](https://www.tobias-erichsen.de/software/loopmidi.html) |
 | **NuGet CLI** (if `nuget restore` is needed) | [dist.nuget.org/win-x86-commandline/latest/nuget.exe](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe) |
 
 Install the Kinect SDK **before** running the app, with the sensor **unplugged**. Plug in the Kinect after installation completes.
@@ -117,16 +119,59 @@ Adjust the MSBuild path if you use a different Visual Studio edition.
 
 Or press **F5** in Visual Studio with **Debug | x86** selected.
 
+## Architecture
+
+The app is organized into three layers:
+
+```
+Kinect / Hand Pointer events
+        ↓
+MainWindow (UI wiring only)
+        ↓
+ViolinSessionController  ← decides when to play / stop
+        ↓
+MidiService            ← sends NoteOn / NoteOff / ProgramChange
+        ↓
+MusicCatalog           ← note & instrument lookup tables
+```
+
+| Layer | Key files | Responsibility |
+|-------|-----------|----------------|
+| **UI** | `MainWindow.xaml.cs`, `KinectV2CustomButton*` | Display buttons, forward Kinect events |
+| **Services** | `ViolinSessionController`, `MidiService`, `KinectTrackingService` | Session state, MIDI I/O, body/gesture tracking |
+| **Models** | `MusicCatalog`, `InstrumentConfig`, `NoteButtonDefinition` | Note mappings, instrument presets |
+
+### How MIDI Is Triggered
+
+1. `KinectTrackingService` detects the `PlayString` gesture via `GestureDetector` → `GestureResultView`.
+2. `MainWindow` forwards hand-hover and gesture events to `ViolinSessionController`.
+3. `ViolinSessionController` calls `MidiService.PlayNote()` / `StopNote()` when:
+   - the session is **armed** (user has left a button at least once),
+   - a **note button** is hovered, and
+   - the **bowing gesture** is active.
+4. Instrument buttons call `MidiService.SetInstrument()` to switch MIDI program and pitch offset.
+
+To change note mappings, edit `Models/MusicCatalog.cs`. To change play conditions, edit `Services/ViolinSessionController.cs`.
+
 ## Project Structure
 
 ```
 Kinect_Violin/
-├── App.xaml / App.xaml.cs          # Application entry point
-├── MainWindow.xaml / .cs           # Main UI, Kinect init, MIDI, button logic
+├── Models/
+│   ├── MusicCatalog.cs             # Note & instrument lookup tables
+│   ├── InstrumentConfig.cs
+│   ├── NoteButtonDefinition.cs
+│   └── GestureStateChangedEventArgs.cs
+├── Services/
+│   ├── ViolinSessionController.cs  # Play/stop decision logic
+│   ├── MidiService.cs              # MIDI device I/O
+│   ├── KinectTrackingService.cs    # Body frames + gesture detectors
+│   └── ButtonBrushFactory.cs       # Cached button image brushes
+├── MainWindow.xaml / .cs           # UI wiring and button creation
 ├── KinectV2CustomButton.cs         # Custom Kinect-aware button control
 ├── KinectV2CustomButtonController.cs  # Hand pointer enter/leave detection
 ├── GestureDetector.cs              # VGB gesture detection per body
-├── GestureResultView.cs            # Gesture state + MIDI trigger logic
+├── GestureResultView.cs            # Gesture state display & events
 ├── KinectBodyView.cs               # Skeleton rendering
 ├── Database/                       # VGB gesture databases (.gba, .gbd)
 ├── Images/                         # UI assets (violin icons, backgrounds)
@@ -161,7 +206,8 @@ Kinect_Violin/
 | `BadImageFormatException` on startup | Build with **x86**, not x64 or Any CPU |
 | `VisualGestureBuilder` not found | Run `nuget restore`; ensure `packages/` exists |
 | App crashes when window loads | Ensure `Images/` is copied to output (handled by post-build step) |
-| No sound | Install loopMIDI; route MIDI to a synth or DAW |
+| App opens but no sound | Install loopMIDI (or another virtual MIDI port); route MIDI to a synth or DAW |
+| App shows "No MIDI output device found" | Expected without loopMIDI — install it to enable sound |
 | Kinect not detected | Install Kinect SDK 2.0; use USB 3.0; check Device Manager for "KinectSensor Device" |
 | Gesture not recognized | Stand in sensor range; ensure `Database/PlayString.gba` is present in output folder |
 
