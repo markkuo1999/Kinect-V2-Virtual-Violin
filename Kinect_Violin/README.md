@@ -2,7 +2,11 @@
 
 A Windows desktop application that lets you play a virtual violin using **Kinect v2** body tracking, custom hand-hover buttons, and **MIDI** output.
 
-The project extends the [Kinect v2 WPF Custom Button](https://github.com/) demo pattern: buttons respond to hand pointer enter/leave events instead of mouse clicks. Combined with Visual Gesture Builder (VGB) gesture detection, hovering over a string/fret button and performing a bowing gesture sends MIDI notes to a virtual instrument.
+The project extends the [Kinect v2 WPF Custom Button](https://github.com/dehariapankaj/WPFKinectV2CustomButton) demo pattern: buttons respond to hand pointer enter/leave events instead of mouse clicks. Combined with Visual Gesture Builder (VGB) gesture detection, hovering over a string/fret button and performing a bowing gesture sends MIDI notes to a virtual instrument.
+
+![Kinect Violin running interface](Images/app-screenshot.jpg)
+
+*The virtual violin UI: hover a hand over note buttons (G/D/A/E strings) to select pitch, choose an instrument at the top right, then perform a bowing gesture to play via MIDI.*
 
 ## What It Does
 
