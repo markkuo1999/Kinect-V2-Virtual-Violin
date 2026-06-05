@@ -2,4 +2,4 @@
 
 Documentation lives in the [repository root README](../README.md).
 
-That file covers setup, technical foundations, architecture, MIDI triggering, button layout, and troubleshooting.
+That file covers setup, architecture, MIDI triggering, button layout, and troubleshooting.
