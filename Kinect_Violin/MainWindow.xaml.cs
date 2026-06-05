@@ -395,8 +395,8 @@ namespace WpfKinectV2CustomButton
         {
             var brush = new ImageBrush();
             var brush2 = new ImageBrush();
-            brush.ImageSource = new BitmapImage(new Uri(@"C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violinicon.png", UriKind.Relative));
-            brush2.ImageSource = new BitmapImage(new Uri(@"C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violinicon2.png", UriKind.Relative));
+            brush.ImageSource = new BitmapImage(new Uri(@"Images\violinicon.png", UriKind.Relative));
+            brush2.ImageSource = new BitmapImage(new Uri(@"Images\violinicon2.png", UriKind.Relative));
 
             for (int i = 0; i < 16; i++)
             {
@@ -489,8 +489,8 @@ namespace WpfKinectV2CustomButton
             buttonoff = true;
             var brush = new ImageBrush();
             var brush2 = new ImageBrush();
-            brush.ImageSource = new BitmapImage(new Uri(@"C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violinicon.png", UriKind.Relative));
-            brush2.ImageSource = new BitmapImage(new Uri(@"C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violinicon2.png", UriKind.Relative));
+            brush.ImageSource = new BitmapImage(new Uri(@"Images\violinicon.png", UriKind.Relative));
+            brush2.ImageSource = new BitmapImage(new Uri(@"Images\violinicon2.png", UriKind.Relative));
             //GestureResultView ob = new GestureResultView(0, false, false, 0, false);
             //ob.UpdateGestureResult.;          
             textBlock.Text = continueplaying.ToString();
@@ -662,8 +662,8 @@ namespace WpfKinectV2CustomButton
         {
             var brush = new ImageBrush();
             var brush2 = new ImageBrush();
-            brush.ImageSource = new BitmapImage(new Uri(@"C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violinicon.png", UriKind.Relative));
-            brush2.ImageSource = new BitmapImage(new Uri(@"C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violinicon2.png", UriKind.Relative));
+            brush.ImageSource = new BitmapImage(new Uri(@"Images\violinicon.png", UriKind.Relative));
+            brush2.ImageSource = new BitmapImage(new Uri(@"Images\violinicon2.png", UriKind.Relative));
             //txtMessage.Text = ((KinectV2CustomButton)sender).Name;
             //txtMessage.Background = ((KinectV2CustomButton)sender).Background;
             if (txtMessage.Text == "E0")

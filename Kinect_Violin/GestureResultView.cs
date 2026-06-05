@@ -288,8 +288,8 @@ namespace WpfKinectV2CustomButton
             this.Confidence = 0.0f;
             var brush = new ImageBrush();
             var brush2 = new ImageBrush();
-            brush.ImageSource = new BitmapImage(new Uri(@"C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violinicon.png", UriKind.Relative));
-            brush2.ImageSource = new BitmapImage(new Uri(@"C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violinicon2.png", UriKind.Relative));
+            brush.ImageSource = new BitmapImage(new Uri(@"Images\violinicon.png", UriKind.Relative));
+            brush2.ImageSource = new BitmapImage(new Uri(@"Images\violinicon2.png", UriKind.Relative));
             //MainWindow ob = new MainWindow();
             if (!this.IsTracked)
             {

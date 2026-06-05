@@ -15,7 +15,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Image x:Name="image" Source="C:\Users\markk\Desktop\my_kinect_violin\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\WPFKinectV2CustomButton-master\Images\violin3.jpg" Margin="-195,-26,-595,-24.4" Visibility="Visible"/>
+        <Image x:Name="image" Source="Images/violin3.jpg" Margin="-195,-26,-595,-24.4" Visibility="Visible"/>
         <k:KinectRegion x:Name="kinectRegion" Margin="0,0,-400,-0.4">
 
             <!--DataTemplate DataType="{x:Type local:GestureResultView}"-->

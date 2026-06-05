@@ -86,7 +86,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Microsoft.Kinect.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Kinect.VisualGestureBuilder, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64" />
+    <Reference Include="Microsoft.Kinect.VisualGestureBuilder, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
+      <HintPath>packages\Microsoft.Kinect.VisualGestureBuilder.2.0.1410.19000\lib\net45\Microsoft.Kinect.VisualGestureBuilder.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Kinect.Wpf.Controls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Microsoft.Kinect.Wpf.Controls.dll</HintPath>
@@ -202,6 +204,14 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="AfterBuild">
+    <ItemGroup>
+      <VgbTechs Include="packages\Microsoft.Kinect.VisualGestureBuilder.2.0.1410.19000\content\vgbtechs\**\*.*" />
+      <RuntimeImages Include="Images\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(VgbTechs)" DestinationFolder="$(OutDir)vgbtechs\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(RuntimeImages)" DestinationFolder="$(OutDir)Images\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
   <Import Project="packages\RtMidi.Core.1.0.50\build\RtMidi.Core.targets" Condition="Exists('packages\RtMidi.Core.1.0.50\build\RtMidi.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
